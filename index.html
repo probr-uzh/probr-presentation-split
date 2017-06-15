@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Probr</title>
+
+<style>
+    html, body {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        min-height: 100%;
+        overflow: hidden;
+    }
+
+    .quadrant {
+        width: 50%;
+        height: 50%;
+        border: 1px solid#55a67f;
+        margin: 0px -1px;
+        overflow: hidden;
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+    }
+
+    .pull-left {
+        float: left;
+    }
+
+    .pull-right {
+        float: right;
+    }
+
+    .particles-bg {
+        background-color: #55a67f;
+        height: 100%;
+        position: relative;
+    }
+
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .probr-logo {
+        text-align: center;
+        padding-top: 170px;
+        font-family: 'Open Sans';
+        color: white;
+    }
+
+    .probr-logo > img {
+        height: 100px;
+    }
+
+    .hide-nav .navbar.navbar-default.navbar-static-top.ng-scope { 
+        display: none;
+    }
+</style>
+
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+</head>
+
+<body>
+    <div class="quadrant pull-left">
+        <iframe class="hide-nav" src="https://probr.csg.uzh.ch/analysis/heatmap?startTimestamp=1497564000000&endTimestamp=1497722400000"></iframe>
+    </div>
+    <div class="quadrant pull-right" >
+        <iframe class="hide-nav" src="https://probr.csg.uzh.ch/analysis/live"></iframe>
+    </div>
+    <div class="quadrant pull-left bottom">
+        <!--
+        <div class="particles-bg" id="wordcloud">
+
+        </div>
+        -->
+        <iframe class="hide-nav" src="https://probr.csg.uzh.ch/analysis/mac?startTimestamp=1497132000000&endTimestamp=1497722400000"></iframe>
+    </div>
+    <div class="quadrant pull-right bottom">
+        <div class="particles-bg" id="particles">
+            <div class="probr-logo">
+                <img src="img/probrlogo_white.png"><h4 class="lead centered">a generic wifi tracking system</h4>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<script src="js/particles.min.js"></script>
+<script src="js/d3.js"></script>
+<script src="js/d3.layout.cloud.js"></script>
+<script src="js/d3.wordcloud.js"></script>
+<script>
+
+    var wssUrl = 'wss://probr.csg.uzh.ch/analysis/';
+
+    var words = [{ text: 'uzh', size: 1 }];
+
+    (function () {
+      var socket = io.connect(wssUrl);
+      socket.on('packet:create', function(packet) {
+        var existingSsid = words.findIndex(function (obj) {
+          return obj.text === packet.ssid;
+        });
+
+        if (existingSsid !== -1) {
+          words[existingSsid].size ++;
+        } else {
+          words.unshift({ text: packet.ssid, size: 0 });
+        }
+
+        if (words.length > 500) {
+          words.pop();
+        }
+
+      });
+    })();
+
+    d3.wordcloud()
+        .size([800, 400])
+        .selector('#wordcloud')
+        .fill(d3.scale.category20b())
+        .words(words)
+        .start();
+
+    particlesJS('particles', {
+          "particles": {
+            "number": {
+              "value": 40,
+              "density": {
+                "enable": true,
+                "value_area": 450
+              }
+            },
+            "color": {
+              "value": "#ffffff"
+            },
+            "shape": {
+              "type": "circle",
+              "stroke": {
+                "width": 0,
+                "color": "#000000"
+              },
+              "polygon": {
+                "nb_sides": 5
+              }
+            },
+            "opacity": {
+              "value": 0.5,
+              "random": false,
+              "anim": {
+                "enable": false,
+                "speed": 1,
+                "opacity_min": 0.1,
+                "sync": false
+              }
+            },
+            "size": {
+              "value": 3,
+              "random": true,
+              "anim": {
+                "enable": false,
+                "speed": 40,
+                "size_min": 0.1,
+                "sync": false
+              }
+            },
+            "line_linked": {
+              "enable": true,
+              "distance": 150,
+              "color": "#ffffff",
+              "opacity": 0.4,
+              "width": 1
+            },
+            "move": {
+              "enable": true,
+              "speed": 0.5,
+              "direction": "none",
+              "random": false,
+              "straight": false,
+              "out_mode": "out",
+              "bounce": false,
+              "attract": {
+                "enable": false,
+                "rotateX": 600,
+                "rotateY": 1200
+              }
+            }
+          },
+          "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+              "onhover": {
+                "enable": false,
+                "mode": "bubble"
+              },
+              "onclick": {
+                "enable": true,
+                "mode": "push"
+              },
+              "resize": true
+            },
+            "modes": {
+              "grab": {
+                "distance": 400,
+                "line_linked": {
+                  "opacity": 1
+                }
+              },
+              "bubble": {
+                "distance": 400,
+                "size": 40,
+                "duration": 2,
+                "opacity": 8,
+                "speed": 3
+              },
+              "repulse": {
+                "distance": 200,
+                "duration": 0.4
+              },
+              "push": {
+                "particles_nb": 4
+              },
+              "remove": {
+                "particles_nb": 2
+              }
+            }
+          },
+          "retina_detect": true
+        });
+
+</script>
+
+
+</html>
